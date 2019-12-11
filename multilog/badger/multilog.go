@@ -7,7 +7,7 @@ import (
 	"encoding/binary"
 	"sync"
 
-	"github.com/dgraph-io/badger"
+	"github.com/dgraph-io/badger/v2"
 	"github.com/pkg/errors"
 
 	"go.cryptoscope.co/librarian"

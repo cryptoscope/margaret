@@ -5,7 +5,7 @@ package test
 import (
 	"io/ioutil"
 
-	"github.com/dgraph-io/badger"
+	"github.com/dgraph-io/badger/v2"
 	"github.com/pkg/errors"
 
 	"go.cryptoscope.co/margaret/codec/json"

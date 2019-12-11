@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/cryptix/go/logging"
-	"github.com/dgraph-io/badger"
+	"github.com/dgraph-io/badger/v2"
 	"github.com/pkg/errors"
 	goon "github.com/shurcooL/go-goon"
 	"go.cryptoscope.co/librarian"

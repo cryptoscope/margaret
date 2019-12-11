@@ -5,6 +5,7 @@ require (
 	github.com/cryptix/go v1.4.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgraph-io/badger v2.0.0-rc2+incompatible
+	github.com/dgraph-io/badger/v2 v2.0.0
 	github.com/dustin/go-humanize v1.0.0
 	github.com/edsrzf/mmap-go v1.0.0 // indirect
 	github.com/keks/persist v0.0.0-20181029214439-3af502dad70b
