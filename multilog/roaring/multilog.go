@@ -3,7 +3,9 @@
 package roaring
 
 import (
+	"fmt"
 	"sync"
+	"time"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/pkg/errors"
@@ -20,10 +22,39 @@ import (
 // It uses files to store roaring bitmaps directly.
 // for this it turns the librarian.Addrs into a hex string.
 func NewStore(store persist.Saver) *MultiLog {
-	return &MultiLog{
+	ml := &MultiLog{
 		store:   store,
 		sublogs: make(map[librarian.Addr]*sublog),
 		curSeq:  margaret.BaseSeq(-2),
+
+		tickPersist: time.NewTicker(10 * time.Second),
+	}
+	go ml.writeBatches()
+	return ml
+}
+
+func (log *MultiLog) writeBatches() {
+
+	for {
+		select {
+		case <-log.tickPersist.C:
+
+		}
+		log.l.Lock()
+
+		for _, sublog := range log.sublogs {
+
+			if sublog.dirty {
+				err := sublog.store()
+				if err != nil {
+					fmt.Println("sublog store failed", err)
+				}
+				sublog.dirty = false
+			}
+
+		}
+
+		log.l.Unlock()
 	}
 }
 
@@ -34,6 +65,8 @@ type MultiLog struct {
 
 	l       sync.Mutex
 	sublogs map[librarian.Addr]*sublog
+
+	tickPersist *time.Ticker
 }
 
 func (log *MultiLog) Get(addr librarian.Addr) (margaret.Log, error) {
@@ -134,7 +167,7 @@ func (log *MultiLog) CompressAll() error {
 
 	// save open ones
 	for addr, sublog := range log.sublogs {
-		_, err := sublog.update()
+		err := sublog.store()
 		if err != nil {
 			return errors.Wrapf(err, "failed to update open sublog %x", addr)
 		}
@@ -207,5 +240,7 @@ func (log *MultiLog) loadAll() error {
 }
 
 func (log *MultiLog) Close() error {
+	time.Sleep(5 * time.Second)
+	log.tickPersist.Stop()
 	return log.store.Close()
 }
