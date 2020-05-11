@@ -97,6 +97,8 @@ func MultilogTestAddLogAndListed(f NewLogFunc) func(*testing.T) {
 			r.NoError(err, "failed to append testVal %d for deletion", i)
 		}
 
+		r.NoError(mlog.Flush())
+
 		//  should have the new one
 		addrs, err = mlog.List()
 		r.NoError(err, "error listing mlog")
@@ -104,7 +106,7 @@ func MultilogTestAddLogAndListed(f NewLogFunc) func(*testing.T) {
 
 		// remove it
 		err = mlog.Delete(delAddr)
-		r.NoError(err)
+		r.NoError(err, "delete of %s", delAddr)
 
 		// cant use previous handle
 		sv, err := sublog.Seq().Value()
