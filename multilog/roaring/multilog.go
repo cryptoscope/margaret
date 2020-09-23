@@ -4,7 +4,7 @@ package roaring
 
 import (
 	"context"
-	"fmt"
+	stdlog "log"
 	"sync"
 	"time"
 
@@ -30,9 +30,10 @@ func NewStore(store persist.Saver) *MultiLog {
 		sublogs: make(map[librarian.Addr]*sublog),
 		curSeq:  margaret.BaseSeq(-2),
 
-		processing:  ctx,
-		done:        cancel,
-		tickPersist: time.NewTicker(13 * time.Second),
+		processing:   ctx,
+		done:         cancel,
+		writerClosed: make(chan struct{}),
+		tickPersist:  time.NewTicker(13 * time.Second),
 	}
 	go ml.writeBatches()
 	return ml
@@ -43,11 +44,12 @@ func (log *MultiLog) writeBatches() {
 		select {
 		case <-log.tickPersist.C:
 		case <-log.processing.Done():
+			close(log.writerClosed)
 			return
 		}
 		err := log.Flush()
 		if err != nil {
-			fmt.Println("flush trigger failed")
+			stdlog.Println("flush trigger failed", err)
 		}
 	}
 }
@@ -79,9 +81,10 @@ type MultiLog struct {
 	l       *sync.Mutex
 	sublogs map[librarian.Addr]*sublog
 
-	processing  context.Context
-	done        context.CancelFunc
-	tickPersist *time.Ticker
+	processing   context.Context
+	done         context.CancelFunc
+	writerClosed chan struct{}
+	tickPersist  *time.Ticker
 }
 
 func (log *MultiLog) Get(addr librarian.Addr) (margaret.Log, error) {
@@ -257,6 +260,7 @@ func (log *MultiLog) loadAll() error {
 func (log *MultiLog) Close() error {
 	log.done()
 	log.tickPersist.Stop()
+	<-log.writerClosed
 
 	if err := log.Flush(); err != nil {
 		return errors.Wrap(err, "roaringfiles: close failed to flush")
