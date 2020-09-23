@@ -90,5 +90,9 @@ func (s Saver) List() ([]persist.Key, error) {
 
 func (s Saver) Delete(k persist.Key) error {
 	fname := s.fnameForKey(k)
-	return os.Remove(fname)
+	err := os.Remove(fname)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }
