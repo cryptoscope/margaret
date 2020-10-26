@@ -12,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/margaret/internal/persist"
+	"go.cryptoscope.co/margaret/internal/persist/badger"
 	"go.cryptoscope.co/margaret/internal/persist/fs"
 	"go.cryptoscope.co/margaret/internal/persist/mkv"
 	"go.cryptoscope.co/margaret/internal/persist/sqlite"
@@ -107,6 +108,7 @@ func makeRandData(r *require.Assertions, n int) (persist.Key, []byte) {
 func TestSaver(t *testing.T) {
 	t.Run("fs", SimpleSaver(makeFS))
 	t.Run("sqlite", SimpleSaver(makeSqlite))
+	t.Run("badger", SimpleSaver(makeBadger))
 	t.Run("kv", SimpleSaver(makeMKV))
 }
 
@@ -114,6 +116,17 @@ func makeFS(t *testing.T) persist.Saver {
 	base := filepath.Join("testrun", t.Name())
 	os.RemoveAll(base)
 	return fs.New(base)
+}
+
+func makeBadger(t *testing.T) persist.Saver {
+	base := filepath.Join("testrun", t.Name())
+	//os.RemoveAll(base)
+	t.Log(base)
+	s, err := badger.New(base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return s
 }
 
 func makeSqlite(t *testing.T) persist.Saver {
