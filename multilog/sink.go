@@ -10,7 +10,6 @@ import (
 
 	"github.com/keks/persist"
 	"github.com/pkg/errors"
-	"go.cryptoscope.co/librarian"
 	"go.cryptoscope.co/margaret"
 )
 
@@ -19,7 +18,6 @@ type Func func(ctx context.Context, seq margaret.Seq, value interface{}, mlog Mu
 
 // Sink is both a multilog and a luigi sink. Pouring values into it will append values to the multilog, usually by calling a user-defined processing function.
 type Sink interface {
-	MultiLog
 	Pour(ctx context.Context, v interface{}) error
 	QuerySpec() margaret.QuerySpec
 }
@@ -41,25 +39,6 @@ type sinkLog struct {
 	l    *sync.Mutex
 }
 
-// Get gets the sublog with the given address.
-func (slog *sinkLog) Get(addr librarian.Addr) (margaret.Log, error) {
-	log, err := slog.mlog.Get(addr)
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting log from multilog")
-	}
-
-	return roLog{log}, nil
-}
-
-// List returns the addresses of all sublogs in the multilog
-func (slog *sinkLog) List() ([]librarian.Addr, error) {
-	return slog.mlog.List()
-}
-
-func (slog *sinkLog) Delete(addr librarian.Addr) error {
-	return slog.mlog.Delete(addr)
-}
-
 // Pour calls the processing function to add a value to a sublog.
 func (slog *sinkLog) Pour(ctx context.Context, v interface{}) error {
 	slog.l.Lock()
@@ -74,8 +53,6 @@ func (slog *sinkLog) Pour(ctx context.Context, v interface{}) error {
 	err = slog.f(ctx, seq.Seq(), seq.Value(), slog.mlog)
 	return errors.Wrap(err, "multilog/sink: error in processing function")
 }
-
-func (slog *sinkLog) Flush() error { return slog.mlog.Flush() }
 
 // Close does nothing.
 func (slog *sinkLog) Close() error { return nil }
