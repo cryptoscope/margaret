@@ -133,6 +133,9 @@ func (log *MultiLog) openSublog(addr librarian.Addr) (*sublog, error) {
 
 // LoadInternalBitmap loads the raw roaringbitmap for key
 func (log *MultiLog) LoadInternalBitmap(key librarian.Addr) (*roaring.Bitmap, error) {
+	if err := log.Flush(); err != nil {
+		return nil, err
+	}
 	return log.loadBitmap([]byte(key))
 }
 

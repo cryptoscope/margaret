@@ -5,7 +5,8 @@ require (
 	github.com/RoaringBitmap/roaring v0.4.21-0.20190925020156-96f2302555b6
 	github.com/cryptix/go v1.5.0
 	github.com/dgraph-io/badger v2.0.0-rc2+incompatible
-	github.com/golang/protobuf v1.3.2 // indirect
+	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
+	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
 	github.com/keks/persist v0.0.0-20191006175951-43c124092b8b
 	github.com/mattn/go-sqlite3 v1.11.0
@@ -17,6 +18,9 @@ require (
 	github.com/ugorji/go/codec v1.1.7
 	go.cryptoscope.co/librarian v0.2.1-0.20200604160012-d85e03a70e79
 	go.cryptoscope.co/luigi v0.3.6-0.20200131144242-3256b54e72c8
+	golang.org/x/net v0.0.0-20201006153459-a7d1128ccaa0 // indirect
+	golang.org/x/sys v0.0.0-20201006155630-ac719f4daadf // indirect
+	google.golang.org/protobuf v1.25.0 // indirect
 	modernc.org/fileutil v1.0.1-0.20191220121946-b2535a37172b // indirect
 	modernc.org/kv v1.0.0
 )

@@ -10,6 +10,7 @@ import (
 
 	"github.com/keks/persist"
 	"github.com/pkg/errors"
+	"go.cryptoscope.co/luigi"
 	"go.cryptoscope.co/margaret"
 )
 
@@ -18,7 +19,7 @@ type Func func(ctx context.Context, seq margaret.Seq, value interface{}, mlog Mu
 
 // Sink is both a multilog and a luigi sink. Pouring values into it will append values to the multilog, usually by calling a user-defined processing function.
 type Sink interface {
-	Pour(ctx context.Context, v interface{}) error
+	luigi.Sink
 	QuerySpec() margaret.QuerySpec
 }
 
