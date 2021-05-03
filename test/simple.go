@@ -44,25 +44,28 @@ func LogTestSimple(f NewLogFunc) func(*testing.T) {
 				}
 			}()
 
+			// Fill the log with the test values
 			for i, v := range tc.values {
 				seq, err := log.Append(v)
 				r.NoError(err, "error appending to log")
 				r.Equal(margaret.BaseSeq(i), seq, "sequence missmatch")
-
 			}
 
+			// create a query over the filled log
 			src, err := log.Query(tc.specs...)
 			r.NoError(err, "error querying log")
 
+			// boiler plate to empty the source
 			ctx := context.Background()
 			ctx, cancel := context.WithCancel(ctx)
 			defer cancel()
 
 			waiter := make(chan struct{})
-			var v_ interface{}
+			var got interface{}
 			err = nil
 
-			for _, v := range tc.result {
+			// iterate over the expected results from the source
+			for _, want := range tc.result {
 				go func() {
 					select {
 					case <-time.After(time.Millisecond):
@@ -72,16 +75,17 @@ func LogTestSimple(f NewLogFunc) func(*testing.T) {
 					}
 				}()
 
-				v_, err = src.Next(ctx)
+				// get a single entry from the source
+				got, err = src.Next(ctx)
 				if tc.errStr == "" {
 					if tc.seqWrap {
-						sw := v.(margaret.SeqWrapper)
-						sw_ := v_.(margaret.SeqWrapper)
+						sw := want.(margaret.SeqWrapper)
+						sw_ := got.(margaret.SeqWrapper)
 
 						a.Equal(sw.Seq(), sw_.Seq(), "sequence number doesn't match")
 						a.Equal(sw.Value(), sw_.Value(), "value doesn't match")
 					} else {
-						a.EqualValues(v, v_, "values don't match")
+						a.EqualValues(want, got, "values don't match")
 					}
 				}
 				if err != nil {
