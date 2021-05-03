@@ -3,6 +3,8 @@
 package test
 
 import (
+	"os"
+
 	"go.cryptoscope.co/margaret"
 
 	"go.cryptoscope.co/margaret/flatlog"
@@ -12,6 +14,7 @@ import (
 func init() {
 	buildNewLogFunc := func() mtest.NewLogFunc {
 		return func(name string, tipe interface{}) (margaret.Log, error) {
+			os.RemoveAll(name)
 			return flatlog.Open(name)
 		}
 	}

@@ -39,8 +39,10 @@ func LogTestSimple(f NewLogFunc) func(*testing.T) {
 			r.NotNil(log, "returned log is nil")
 
 			defer func() {
-				if namer, ok := log.(interface{ FileName() string }); ok {
+				if namer, ok := log.(namedLog); ok {
 					r.NoError(os.RemoveAll(namer.FileName()), "error deleting log after test")
+				} else {
+					t.Log("warning: testrun not deleted")
 				}
 			}()
 

@@ -4,7 +4,6 @@ package test // import "go.cryptoscope.co/margaret/test"
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,6 +11,10 @@ import (
 
 	"go.cryptoscope.co/margaret"
 )
+
+type namedLog interface {
+	FileName() string
+}
 
 func LogTestGet(f NewLogFunc) func(*testing.T) {
 	type testcase struct {
@@ -29,11 +32,12 @@ func LogTestGet(f NewLogFunc) func(*testing.T) {
 			r.NoError(err, "error creating log")
 			r.NotNil(log, "returned log is nil")
 
-			defer func() {
-				if namer, ok := log.(interface{ FileName() string }); ok {
-					r.NoError(os.RemoveAll(namer.FileName()), "error deleting log after test")
-				}
-			}()
+			// TODO:
+			// defer func() {
+			// 	if namer, ok := log.(namedLog); ok {
+			// 		r.NoError(os.RemoveAll(namer.FileName()), "error deleting log after test")
+			// 	}
+			// }()
 
 			for i, v := range tc.values {
 				seq, err := log.Append(v)
@@ -41,25 +45,37 @@ func LogTestGet(f NewLogFunc) func(*testing.T) {
 				r.Equal(margaret.BaseSeq(i), seq, "sequence missmatch")
 			}
 
-			for i, v_ := range tc.result {
-				v, err := log.Get(margaret.BaseSeq(i))
+			for i, wants := range tc.result {
+				got, err := log.Get(margaret.BaseSeq(i))
 				a.NoError(err, "error getting value at position", i)
-				a.Equal(v, v_, "value mismatch at position", i)
+				a.Equal(wants, got, "value mismatch at position", i)
 			}
 		}
 	}
 
 	tcs := []testcase{
+		// {
+		// 	tipe:   0,
+		// 	values: []interface{}{1, 2, 3},
+		// 	result: []interface{}{1, 2, 3},
+		// },
+
 		{
-			tipe:   0,
-			values: []interface{}{1, 2, 3},
-			result: []interface{}{1, 2, 3},
+			tipe:   "strings",
+			values: []interface{}{"a", "b", "c"},
+			result: []interface{}{"a", "b", "c"},
+		},
+
+		{
+			tipe:   "strings with newlines",
+			values: []interface{}{"a", "hello\nworld", "n\nii\nic\nc\ne\neee"},
+			result: []interface{}{"a", "hello\nworld", "n\nii\nic\nc\ne\neee"},
 		},
 	}
 
 	return func(t *testing.T) {
 		for i, tc := range tcs {
-			t.Run(fmt.Sprint(i), mkTest(tc))
+			t.Run(fmt.Sprintf("%d-type:%T", i, tc.tipe), mkTest(tc))
 		}
 	}
 }
