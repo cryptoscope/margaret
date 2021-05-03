@@ -10,4 +10,6 @@ import (
 	// _ "go.cryptoscope.co/margaret/offset/test"
 
 	_ "go.cryptoscope.co/margaret/offset2/test"
+
+	_ "go.cryptoscope.co/margaret/flatlog/test"
 )
